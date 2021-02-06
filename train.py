@@ -8,27 +8,22 @@ import joblib
 from scipy.cluster.vq import kmeans, vq
 
 
-# Get the training classes names and store them in a list
-#Here we use folder names for class names
 
-#train_path = 'dataset/train'  # Names are Aeroplane, Bicycle, Car
-train_path = './train'  # Folder Names are Parasitized and Uninfected
+# Chemin vers les images d'entrainement
+train_path = './train'
 training_names = os.listdir(train_path)
 
 
-# Get path to all images and save them in a list
-# image_paths and the corresponding label in image_paths
+# Stockage des images dans une liste
 image_paths = []
 image_classes = []
 class_id = 0
 
-#To make it easy to list all file names in a directory let us define a function
-#
+# Mettre tous les fichiers dans un dossier
 def imglist(path):
     return [os.path.join(path, f) for f in os.listdir(path)]
 
-#Fill the placeholder empty lists with image path, classes, and add class ID number
-#
+
 
 for training_name in training_names:
     dir = os.path.join(train_path, training_name)
@@ -37,9 +32,8 @@ for training_name in training_names:
     image_classes+=[class_id]*len(class_path)
     class_id+=1
 print(class_path)
-# Create feature extraction and keypoint detector objects
-    #SIFT is not available anymore in openCV
-# Create List where all the descriptors will be stored
+
+# Détection des points clés grâce à la méthode SIFT
 des_list = []
 
 
@@ -51,7 +45,7 @@ for image_path in image_paths:
 print(des_list)
 print("SIFT OK")
 
-# Stack all the descriptors vertically in a numpy array
+# Mettre tous les descripteurs dans un tableau
 descriptors = des_list[0][1]
 for image_path, descriptor in des_list[1:]:
     descriptors = np.vstack((descriptors, descriptor))
@@ -60,15 +54,13 @@ print(descriptors)
 descriptors_float = descriptors.astype(float)
 
 
-# Perform k-means clustering and vector quantization
-
-k = 100  #k means with 100 clusters gives lower accuracy for the aeroplane example
+# Clustering avec Kmeans
+k = 100  #nombre de clusters à modifier
 voc, variance = kmeans(descriptors_float, k, 1)
 print(variance)
 print("Kmeans ok")
 
-# Calculate the histogram of features and represent them as vector
-#vq Assigns codes from a code book to observations.
+# Calculer les données en histogramme(Machine bloque quand j'essaie de tracer les histogrammes)
 im_features = np.zeros((len(image_paths), k), "float32")
 for i in range(len(image_paths)):
     words, distance = vq(des_list[i][1],voc)
@@ -76,26 +68,22 @@ for i in range(len(image_paths)):
         im_features[i][w] += 1
 print("Histogrammes en vecteurs ok")
 
-# Perform Tf-Idf vectorization
+# Vectorisation
 nbr_occurences = np.sum( (im_features > 0) * 1, axis = 0)
 idf = np.array(np.log((1.0*len(image_paths)+1) / (1.0*nbr_occurences + 1)), 'float32')
 print("Vectorisation ok")
 
-# Scaling the words
-#Standardize features by removing the mean and scaling to unit variance
-#In a way normalization
+
 stdSlr = StandardScaler().fit(im_features)
 im_features = stdSlr.transform(im_features)
 print("Scaling ok")
 
-#Train an algorithm to discriminate vectors corresponding to positive and negative training images
-# Train the Linear SVM
-clf = LinearSVC(max_iter=10000)  #Default of 100 is not converging
+# Entrainement grâce à SVM
+clf = LinearSVC(max_iter=10000)  #Nombre d'itérations modifiable
 clf.fit(im_features, np.array(image_classes))
 print("Train algorithme ok")
 
 
-# Save the SVM
-#Joblib dumps Python object into one file
+# Enregistrement des données dans un fichier.pkl 
 joblib.dump((clf, training_names, stdSlr, k, voc), "informations.pkl", compress=3)
 print("Enregistrement ok")
