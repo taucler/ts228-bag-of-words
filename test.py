@@ -101,4 +101,4 @@ print ("Image =", image_paths)
 print ("prediction ="  + str(predictions))
 
 # Enregistrement des infos dans un fichier .csv
-np.savetxt ('data_set.csv', np.transpose([image_paths, predictions]),fmt='%s', delimiter=',', newline='\n')
+np.savetxt ('data_me.csv', np.transpose([image_paths, predictions]),fmt='%s', delimiter=',', newline='\n')

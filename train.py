@@ -55,7 +55,7 @@ descriptors_float = descriptors.astype(float)
 
 
 # Clustering avec Kmeans
-k = 100  #nombre de clusters à modifier
+k = 50  #nombre de clusters à modifier
 voc, variance = kmeans(descriptors_float, k, 1)
 print(variance)
 print("Kmeans ok")
@@ -84,6 +84,6 @@ clf.fit(im_features, np.array(image_classes))
 print("Train algorithme ok")
 
 
-# Enregistrement des données dans un fichier.pkl 
+# Enregistrement des données dans un fichier.pkl
 joblib.dump((clf, training_names, stdSlr, k, voc), "informations.pkl", compress=3)
 print("Enregistrement ok")
